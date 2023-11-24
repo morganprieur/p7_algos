@@ -4,29 +4,33 @@ import csv
 
 
 def read_the_infos(): 
-    """ Reades the infos file to get the actions, their prices 
+    """ Reads the infos file to get the actions, their prices 
             and their benefits. 
             Suppresses the first line from the result. 
-            Adds zeros up to width of 3 to the "bénéfice" column. 
         Returns:
             list: the formated actions from the file. 
     """ 
     registered_actions = [] 
     with open('data/donnees_par_action.csv', 'r') as file: 
         fileReader = csv.reader(file, delimiter='\t') 
-        new_registered_actions = [] 
         for row in fileReader: 
             registered_actions.append(row) 
         registered_actions.pop(0) 
-        for new_row in registered_actions: 
-            new_benef = new_row.pop(2) 
-            new_row.append(new_benef.zfill(3)) 
-            new_registered_actions.append(new_row) 
 
-    return new_registered_actions 
+    return registered_actions 
 
 
-registered_actions = read_the_infos() 
+def formate_the_infos(list_to_formate): 
+    """ From the given list, adds zeros up to width of 3 to the "bénéfice" column. 
+        Returns:
+            list_to_formate: the formated actions. 
+    """ 
+    formated_actions = [] 
+    for new_row in list_to_formate: 
+        new_benef = new_row.pop(2) 
+        new_row.append(new_benef.zfill(3)) 
+        formated_actions.append(new_row) 
+    return formated_actions 
 
 
 def sort_the_infos(list_to_sort, key, reverse): 
@@ -43,8 +47,58 @@ def sort_the_infos(list_to_sort, key, reverse):
     return sorted_list 
 
 
-sorted_list = sort_the_infos(registered_actions, key=lambda x: x[2], reverse=True) 
+# def define_basket_firsts(list_to_chose, max_amount): 
+#     basket = [] 
+#     total_amount = 0 
+#     for row in list_to_chose: 
+#         total_amount += int(row[1]) 
+#         # print(total_amount) 
+#         if total_amount <= max_amount: 
+#             basket.append(row) 
+#         else: 
+#             total_amount -= int(row[1]) 
+#             # print(total_amount) 
+#             break 
+#     return (basket, total_amount) 
+
+
+# def define_basket_brute_force(list_to_chose, max_amount): 
+def define_basket_brute_force(list_to_chose, max_amount): 
+    basket = [] 
+    total_amount = 0 
+    for i in range(len(list_to_chose)): 
+        print(i) 
+        print(list_to_chose[i]) 
+        total_amount += int(list_to_chose[i][1]) 
+        if total_amount <= max_amount: 
+            basket.append(list_to_chose[i]) 
+            # yield list_to_chose[i] 
+        else: 
+            total_amount -= int(list_to_chose[i][1]) 
+            for j in range(len(list_to_chose), i + 1):
+                print(j) 
+                print(list_to_chose[j]) 
+                total_amount += int(list_to_chose[j][1]) 
+
+    return (basket, total_amount) 
+
+
+registered_actions = read_the_infos() 
+# print('\n') 
+# print(registered_actions) 
+formated_actions = formate_the_infos(registered_actions) 
+# print('\n') 
+# print(formated_actions) 
+sorted_list = sort_the_infos(formated_actions, key=lambda x: x[2], reverse=True) 
 # sorted_list = sort_the_infos(registered_actions, key=itemgetter(1), reverse=False) 
-print(sorted_list) 
+# print('\n') 
+# print(sorted_list) 
+# basket = define_basket_firsts(sorted_list, 500)[0] 
+# amount = define_basket_firsts(sorted_list, 500)[1] 
+basket = define_basket_brute_force(sorted_list, 500)[0] 
+amount = define_basket_brute_force(sorted_list, 500)[1] 
+# print('\n') 
+print(basket) 
+print(amount) 
 
 
