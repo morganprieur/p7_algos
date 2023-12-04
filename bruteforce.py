@@ -7,8 +7,8 @@ def main():
     print('main') 
 
     registered_actions = read_the_infos() 
-    test_bf = make_combos(registered_actions, 500) 
-    print(test_bf) 
+    basket_bruteforce = make_combos(registered_actions, 500) 
+    print(basket_bruteforce) 
 
 
 def read_the_infos(): 
@@ -43,7 +43,7 @@ def make_combos(list_to_formate, max_amount):
     calculated_shares = calculate_the_return(registered_shares) 
 
     profit = 0 
-    best_combo = [] 
+    best_basket = [] 
 
     for i in range(len(calculated_shares)): 
         combos = combinations(calculated_shares, i + 1) 
@@ -71,9 +71,9 @@ def make_combos(list_to_formate, max_amount):
                 if total_benefit > profit:
                     profit = total_benefit 
                     print(f'profit : {profit}') 
-                    best_combo = combo 
+                    best_basket = combo 
 
-    return best_combo 
+    return best_basket 
 
 
 def formate_the_infos(list_to_formate): 
