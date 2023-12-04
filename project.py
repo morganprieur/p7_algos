@@ -1,7 +1,7 @@
 
-import bruteforce 
+# import bruteforce 
 
 
-if __name__ == 'main': 
-    bruteforce 
+# if __name__ == 'main': 
+#     bruteforce 
 
