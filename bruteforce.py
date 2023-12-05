@@ -1,13 +1,16 @@
 
 import csv 
 from itertools import combinations 
+from tqdm import tqdm 
 
 
 def main(): 
-    print('main') 
+    # print('main') 
 
-    registered_actions = read_the_infos() 
-    basket_bruteforce = make_combos(registered_actions, 500) 
+    registered_shares = read_the_infos() 
+    formated_shares = formate_the_infos(registered_shares) 
+    calculated_shares = calculate_the_return(formated_shares) 
+    basket_bruteforce = make_combos(calculated_shares, 500) 
     print(basket_bruteforce) 
 
 
@@ -27,53 +30,6 @@ def read_the_infos():
         registered_actions.pop(0) 
 
     return registered_actions 
-
-
-def make_combos(list_to_formate, max_amount):
-    """ Read the file containing the share's list, 
-        set all the pourcentages up to 2 digits, 
-        calculate the profit for each share, 
-        set all combinations of shares. 
-        params: 
-            list_to_formate (list): list of shares from file. 
-            max_amount (int): the amount constraint of buying shares. 
-    """ 
-
-    registered_shares = formate_the_infos(list_to_formate) 
-    calculated_shares = calculate_the_return(registered_shares) 
-
-    profit = 0 
-    best_basket = [] 
-
-    for i in range(len(calculated_shares)): 
-        combos = combinations(calculated_shares, i + 1) 
-
-        for combo in combos: 
-            print(f'combo : {combo}') 
-            total_amount = 0 
-            total_benefit = 0 
-
-            for share in combo: 
-                total_amount += float(share[1]) 
-                print(f'total_amount : {total_amount}') 
-                if total_amount <= max_amount: 
-                    total_benefit += share[3] 
-
-                    with open('data/combos.csv', 'a', encoding='utf-8') as csvfile: 
-                        csv_writer = csv.writer(csvfile, delimiter=',') 
-                        csv_writer.writerow('-') 
-                        csv_writer.writerows(combo) 
-
-                else: 
-                    total_amount -= float(share[1]) 
-                    print(f'total_amount BF86 : {total_amount}') 
-
-                if total_benefit > profit:
-                    profit = total_benefit 
-                    print(f'profit : {profit}') 
-                    best_basket = combo 
-
-    return best_basket 
 
 
 def formate_the_infos(list_to_formate): 
@@ -107,7 +63,51 @@ def calculate_the_return(list_to_calculate):
     return calculated_list 
 
 
+def make_combos(calculated_shares, max_purchase):
+    """ Read the file containing the share's list, 
+        set all the pourcentages up to 2 digits, 
+        calculate the benefit for each share, 
+        set all combinations of shares. 
+        params: 
+            list_to_formate (list): list of shares from file. 
+            max_purchase (int): the amount constraint of buying shares. 
+    """ 
+    benefit = 0 
+    best_basket = [] 
+
+    for i in range(len(calculated_shares)): 
+        combos = combinations(calculated_shares, i + 1) 
+
+        for combo in combos: 
+            print(f'combo : {combo}') 
+            total_purchase = 0 
+            combo_benefit = 0 
+
+            for share in combo: 
+                total_purchase += float(share[1]) 
+                # print(f'total_purchase : {total_purchase}') 
+                if total_purchase <= max_purchase: 
+                    combo_benefit += share[3] 
+
+                    with open('data/combos_bf.csv', 'a', encoding='utf-8') as csvfile: 
+                        csv_writer = csv.writer(csvfile, delimiter=',') 
+                        csv_writer.writerow('- ') 
+                        csv_writer.writerows(combo) 
+
+                else: 
+                    total_purchase -= float(share[1]) 
+                    # print(f'total_purchase BF86 : {total_purchase}') 
+
+                if combo_benefit > benefit:
+                    benefit = combo_benefit 
+                    # print(f'benefit : {benefit}') 
+                    best_basket = combo 
+
+    return best_basket 
+
+
+
 if __name__ == '__main__': 
-    print('name') 
+    # print('name') 
     main() 
 
