@@ -1,4 +1,5 @@
 
+import sys 
 import csv 
 from itertools import combinations 
 
@@ -16,7 +17,6 @@ def main():
     print('\nsorted_benef_list : ', sorted_benef_list) 
     optimized_basket = make_baskets(sorted_benef_list, 500) 
     print('\n', optimized_basket) 
-    # print('\n', sorted_benef_list) 
 
 
 def read_the_infos(): 
@@ -27,8 +27,7 @@ def read_the_infos():
             list: the formated actions from the file. 
     """ 
     registered_list = [] 
-    # with open('data/donnees_par_action.csv', 'r') as file: 
-    with open('data/dataset2_Python+P7.csv', 'r') as file: 
+    with open(f'data/{sys.argv[1]}.csv', 'r') as file: 
         fileReader = csv.reader(file, delimiter=',') 
         for row in fileReader: 
             registered_list.append(row) 
@@ -74,7 +73,6 @@ def calculate_the_benefit(list_to_calculate):
 
 
 def column_to_sort(share): 
-    # print('\nshare[1] : ', share[1]) 
     return share[3] 
 
 
@@ -87,12 +85,7 @@ def sort_the_infos(list_to_sort, key, reverse):
         return :
             sorted_benef_list: the new sorted list. 
     """ 
-    # sorted_benef_list = sorted(list_to_sort, key=lambda x: x[3], reverse=True) 
-    # sorted_benef_list = sorted(list_to_sort, key=lambda x: x[1], reverse=True) 
     sorted_benef_list = sorted(list_to_sort, key=column_to_sort, reverse=True) 
-    # sorted_benef_list = list_to_sort.sort(key=column_to_sort, reverse=True) 
-    # for line1 in sorted_benef_list: 
-    #     print(f'sorted line : {line1}')  # ok 
     return sorted_benef_list 
 
 
@@ -114,37 +107,36 @@ def make_baskets(sorted_benef_list, max_purchase):
     basket_benefit = round(float(0), 2) 
 
     for s in sorted_benef_list: 
-        # print(f'\nmax_purchase OP98 : {max_purchase}') 
-        # print(f'\ns OP118 : {s}') 
         if float(s[1]) <= float(0): 
             continue 
         purchase += round(float(s[1]), 2) 
         if purchase > max_purchase: 
-            # print(f'\ns[1] OP123 : {s[1]}') 
             purchase -= round(float(s[1]), 2) 
         else: 
-            print(f'\npurchase OP126 : {round(purchase, 2)}') 
+            # print(f'\npurchase OP126 : {round(purchase, 2)}') 
             basket.append(s) 
-            # print(f'\nbasket OP125 : {basket}') 
             basket_benefit += round(float(s[3]), 2) 
-            # print(f'\nbasket_benefit OP127 : {round(float(basket_benefit), 2)}') 
 
     if purchase > total_purchase: 
-        # print(f'\npurchase OP133 : {purchase}') 
         total_purchase = round(purchase, 2) 
-        # print(f'\npurchase OP135 : {purchase}') 
 
     if basket_benefit > best_benefit: 
         best_benefit = basket_benefit 
         best_basket = basket 
-        print(f'\nbest_benefit OP135 : {round(float(best_benefit), 2)}') 
+        # print(f'\nbest_benefit OP135 : {round(float(best_benefit), 2)}') 
 
-    with open('data/combos_opti.csv', 'a', encoding='utf-8') as csvfile: 
-        csv_writer = csv.writer(csvfile, delimiter=',') 
-        csv_writer.writerow('-  ') 
-        csv_writer.writerow(str(purchase)) 
-        csv_writer.writerow(str(basket_benefit)) 
+    with open(f'data/{sys.argv[1]}-export.csv', 'a', encoding='utf-8') as csvfile: 
+        csv_writer = csv.writer(csvfile) 
+        # adding header 
+        file_name = [f'{sys.argv[1]}-export.csv'] 
+        headerList = ['name', 'price', 'profit'] 
+        cost = [f'coût total : {round(total_purchase, 2)}'] 
+        profit = [f'profit total : {round(best_benefit, 2)}'] 
+        csv_writer.writerow(file_name) 
+        csv_writer.writerow(headerList) 
         csv_writer.writerows(basket) 
+        csv_writer.writerow(cost) 
+        csv_writer.writerow(profit) 
 
 
     return (best_basket, total_purchase, round(best_benefit, 2)) 
