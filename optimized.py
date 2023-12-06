@@ -6,10 +6,14 @@ from itertools import combinations
 def main(): 
     # print('main') 
 
-    registered_shares = read_the_infos() 
-    formated_list = formate_the_infos(registered_shares) 
+    registered_list = read_the_infos() 
+    formated_list = formate_the_infos(registered_list) 
     calculated_list = calculate_the_benefit(formated_list) 
-    sorted_benef_list = sort_the_infos(calculated_list, key=lambda x: x[3], reverse=True) 
+    # lambda column: column[1] 
+    # sorted_benef_list = sort_the_infos(calculated_list, key=lambda x: x[3], reverse=True) 
+    # sorted_benef_list = sort_the_infos(calculated_list, key=lambda x: x[1], reverse=True) 
+    sorted_benef_list = sort_the_infos(calculated_list, key=column_to_sort, reverse=True) 
+    print('\nsorted_benef_list : ', sorted_benef_list) 
     optimized_basket = make_baskets(sorted_benef_list, 500) 
     print('\n', optimized_basket) 
     # print('\n', sorted_benef_list) 
@@ -22,13 +26,14 @@ def read_the_infos():
         Returns:
             list: the formated actions from the file. 
     """ 
-    registered_shares = [] 
-    with open('data/donnees_par_action.csv', 'r') as file: 
+    registered_list = [] 
+    # with open('data/donnees_par_action.csv', 'r') as file: 
+    with open('data/dataset2_Python+P7.csv', 'r') as file: 
         fileReader = csv.reader(file, delimiter=',') 
         for row in fileReader: 
-            registered_shares.append(row) 
-        registered_shares.pop(0) 
-    return registered_shares 
+            registered_list.append(row) 
+        registered_list.pop(0) 
+    return registered_list 
 
 
 def formate_the_infos(list_to_formate): 
@@ -36,12 +41,18 @@ def formate_the_infos(list_to_formate):
         Returns:
             list: the formated actions. 
     """ 
-    formated_shares = [] 
+    formated_list = [] 
     for new_row in list_to_formate: 
-        new_benef = new_row.pop(2) 
-        new_row.append(new_benef.zfill(3)) 
-        formated_shares.append(new_row) 
-    return formated_shares 
+        # new_benef = new_row.pop(2) 
+        # new_row.append(new_benef.zfill(3)) 
+        new_cost = new_row.pop(1) 
+        new_row.insert(1, new_cost.zfill(3)) 
+        # new_row.append(new_cost.zfill(3)) 
+        # new_cost.zfill(3) 
+        # print('\nnew_cost : ', new_cost) 
+        formated_list.append(new_row) 
+    # print('\nformated_list : ', formated_list) 
+    return formated_list 
 
 
 def calculate_the_benefit(list_to_calculate): 
@@ -55,11 +66,16 @@ def calculate_the_benefit(list_to_calculate):
     calculated_benefit = 0 
 
     for line in list_to_calculate: 
-        calculated_benefit = (float(line[1]) * float(line[2][:2]) / 100) 
-        line.append(calculated_benefit) 
+        calculated_benefit = (float(line[1]) * float(line[2][:-1]) / 100) 
+        line.append(round(calculated_benefit, 2)) 
         calculated_list.append(line) 
 
     return calculated_list 
+
+
+def column_to_sort(share): 
+    # print('\nshare[1] : ', share[1]) 
+    return share[3] 
 
 
 def sort_the_infos(list_to_sort, key, reverse): 
@@ -71,7 +87,10 @@ def sort_the_infos(list_to_sort, key, reverse):
         return :
             sorted_benef_list: the new sorted list. 
     """ 
-    sorted_benef_list = sorted(list_to_sort, key=lambda x: x[3], reverse=True) 
+    # sorted_benef_list = sorted(list_to_sort, key=lambda x: x[3], reverse=True) 
+    # sorted_benef_list = sorted(list_to_sort, key=lambda x: x[1], reverse=True) 
+    sorted_benef_list = sorted(list_to_sort, key=column_to_sort, reverse=True) 
+    # sorted_benef_list = list_to_sort.sort(key=column_to_sort, reverse=True) 
     # for line1 in sorted_benef_list: 
     #     print(f'sorted line : {line1}')  # ok 
     return sorted_benef_list 
@@ -95,24 +114,30 @@ def make_baskets(sorted_benef_list, max_purchase):
     basket_benefit = round(float(0), 2) 
 
     for s in sorted_benef_list: 
-        print(f'\nmax_purchase OP98 : {max_purchase}') 
-        purchase += int(s[1]) 
+        # print(f'\nmax_purchase OP98 : {max_purchase}') 
+        # print(f'\ns OP118 : {s}') 
+        if float(s[1]) <= float(0): 
+            continue 
+        purchase += round(float(s[1]), 2) 
         if purchase > max_purchase: 
-            purchase -= int(s[1]) 
+            # print(f'\ns[1] OP123 : {s[1]}') 
+            purchase -= round(float(s[1]), 2) 
         else: 
-            print(f'\npurchase OP103 : {purchase}') 
+            print(f'\npurchase OP126 : {round(purchase, 2)}') 
             basket.append(s) 
-            print(f'\nbasket OP105 : {basket}') 
+            # print(f'\nbasket OP125 : {basket}') 
             basket_benefit += round(float(s[3]), 2) 
-            print(f'\nbasket_benefit OP107 : {round(float(basket_benefit), 2)}') 
+            # print(f'\nbasket_benefit OP127 : {round(float(basket_benefit), 2)}') 
 
     if purchase > total_purchase: 
-        total_purchase = purchase 
+        # print(f'\npurchase OP133 : {purchase}') 
+        total_purchase = round(purchase, 2) 
+        # print(f'\npurchase OP135 : {purchase}') 
 
     if basket_benefit > best_benefit: 
         best_benefit = basket_benefit 
         best_basket = basket 
-        print(f'\nbest_benefit OP115 : {round(float(best_benefit), 2)}') 
+        print(f'\nbest_benefit OP135 : {round(float(best_benefit), 2)}') 
 
     with open('data/combos_opti.csv', 'a', encoding='utf-8') as csvfile: 
         csv_writer = csv.writer(csvfile, delimiter=',') 

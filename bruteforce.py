@@ -1,16 +1,15 @@
 
 import csv 
 from itertools import combinations 
-from tqdm import tqdm 
 
 
 def main(): 
-    # print('main') 
 
-    registered_shares = read_the_infos() 
-    formated_shares = formate_the_infos(registered_shares) 
-    calculated_shares = calculate_the_return(formated_shares) 
-    basket_bruteforce = make_combos(calculated_shares, 500) 
+    registered_list = read_the_infos() 
+    # formated_list = formate_the_infos(registered_list) 
+    # calculated_list = calculate_the_return(formated_list) 
+    calculated_list = calculate_the_return(registered_list) 
+    basket_bruteforce = make_combos(calculated_list, 500) 
     print(basket_bruteforce) 
 
 
@@ -23,7 +22,6 @@ def read_the_infos():
     """ 
     registered_actions = [] 
     with open('data/donnees_par_action.csv', 'r') as file: 
-        # fileReader = csv.reader(file, delimiter='\t') 
         fileReader = csv.reader(file, delimiter=',') 
         for row in fileReader: 
             registered_actions.append(row) 
@@ -37,12 +35,12 @@ def formate_the_infos(list_to_formate):
         Returns:
             list: the formated actions. 
     """ 
-    formated_shares = [] 
+    formated_list = [] 
     for new_row in list_to_formate: 
         new_benef = new_row.pop(2) 
         new_row.append(new_benef.zfill(3)) 
-        formated_shares.append(new_row) 
-    return formated_shares 
+        formated_list.append(new_row) 
+    return formated_list 
 
 
 def calculate_the_return(list_to_calculate): 
@@ -56,14 +54,14 @@ def calculate_the_return(list_to_calculate):
     calculated_benefit = 0 
 
     for line in list_to_calculate: 
-        calculated_benefit = (float(line[1]) * float(line[2][:2])) / 100 
+        calculated_benefit = (float(line[1]) * float(line[2][:-1])) / 100 
         line.append(calculated_benefit) 
         calculated_list.append(line) 
 
     return calculated_list 
 
 
-def make_combos(calculated_shares, max_purchase):
+def make_combos(calculated_list, max_purchase):
     """ Read the file containing the share's list, 
         set all the pourcentages up to 2 digits, 
         calculate the benefit for each share, 
@@ -75,8 +73,8 @@ def make_combos(calculated_shares, max_purchase):
     benefit = 0 
     best_basket = [] 
 
-    for i in range(len(calculated_shares)): 
-        combos = combinations(calculated_shares, i + 1) 
+    for i in range(len(calculated_list)): 
+        combos = combinations(calculated_list, i + 1) 
 
         for combo in combos: 
             print(f'combo : {combo}') 
@@ -85,7 +83,6 @@ def make_combos(calculated_shares, max_purchase):
 
             for share in combo: 
                 total_purchase += float(share[1]) 
-                # print(f'total_purchase : {total_purchase}') 
                 if total_purchase <= max_purchase: 
                     combo_benefit += share[3] 
 
@@ -96,11 +93,9 @@ def make_combos(calculated_shares, max_purchase):
 
                 else: 
                     total_purchase -= float(share[1]) 
-                    # print(f'total_purchase BF86 : {total_purchase}') 
 
                 if combo_benefit > benefit:
                     benefit = combo_benefit 
-                    # print(f'benefit : {benefit}') 
                     best_basket = combo 
 
     return best_basket 
@@ -108,6 +103,5 @@ def make_combos(calculated_shares, max_purchase):
 
 
 if __name__ == '__main__': 
-    # print('name') 
     main() 
 
