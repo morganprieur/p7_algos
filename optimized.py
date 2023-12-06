@@ -5,21 +5,21 @@ from itertools import combinations
 
 
 def main(): 
-    # print('main') 
 
-    registered_list = read_the_infos() 
+    file = sys.argv[1] 
+    registered_list = read_the_infos(file) 
+
     formated_list = formate_the_infos(registered_list) 
+
     calculated_list = calculate_the_benefit(formated_list) 
-    # lambda column: column[1] 
-    # sorted_benef_list = sort_the_infos(calculated_list, key=lambda x: x[3], reverse=True) 
-    # sorted_benef_list = sort_the_infos(calculated_list, key=lambda x: x[1], reverse=True) 
+
     sorted_benef_list = sort_the_infos(calculated_list, key=column_to_sort, reverse=True) 
-    print('\nsorted_benef_list : ', sorted_benef_list) 
+
     optimized_basket = make_baskets(sorted_benef_list, 500) 
     print('\n', optimized_basket) 
 
 
-def read_the_infos(): 
+def read_the_infos(file): 
     """ Reads the infos file to get the actions, their prices 
             and their benefits. 
             Suppresses the first line from the result. 
@@ -27,7 +27,7 @@ def read_the_infos():
             list: the formated actions from the file. 
     """ 
     registered_list = [] 
-    with open(f'data/{sys.argv[1]}.csv', 'r') as file: 
+    with open(f'data/{file}.csv', 'r') as file: 
         fileReader = csv.reader(file, delimiter=',') 
         for row in fileReader: 
             registered_list.append(row) 
@@ -42,15 +42,9 @@ def formate_the_infos(list_to_formate):
     """ 
     formated_list = [] 
     for new_row in list_to_formate: 
-        # new_benef = new_row.pop(2) 
-        # new_row.append(new_benef.zfill(3)) 
-        new_cost = new_row.pop(1) 
-        new_row.insert(1, new_cost.zfill(3)) 
-        # new_row.append(new_cost.zfill(3)) 
-        # new_cost.zfill(3) 
-        # print('\nnew_cost : ', new_cost) 
+        new_cost = new_row.pop(2) 
+        new_row.insert(2, new_cost.zfill(5)) 
         formated_list.append(new_row) 
-    # print('\nformated_list : ', formated_list) 
     return formated_list 
 
 
@@ -66,7 +60,8 @@ def calculate_the_benefit(list_to_calculate):
 
     for line in list_to_calculate: 
         calculated_benefit = (float(line[1]) * float(line[2][:-1]) / 100) 
-        line.append(round(calculated_benefit, 2)) 
+        str(calculated_benefit).zfill(6) 
+        line.append(round(float(calculated_benefit), 2)) 
         calculated_list.append(line) 
 
     return calculated_list 
@@ -143,6 +138,6 @@ def make_baskets(sorted_benef_list, max_purchase):
 
 
 if __name__ == '__main__': 
-    # print('name') 
+
     main() 
 
