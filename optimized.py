@@ -1,25 +1,30 @@
 
-import sys 
+# file deepcode ignore PythonDuplicateImport: Local project 
 import csv 
-from itertools import combinations 
+from memory_profiler import profile 
+import sys 
+import time 
+
+
+start_time = time.time() 
 
 
 def main(): 
 
-    file = sys.argv[1] 
-    registered_list = read_the_infos(file) 
+    FILENME = sys.argv[1] 
+    MAX_AMOUNT = sys.argv[2] 
 
-    formated_list = formate_the_infos(registered_list) 
+    registered_list = read_the_infos(FILENME) 
 
-    calculated_list = calculate_the_benefit(formated_list) 
+    benef_list = calculate_the_benefit(registered_list) 
 
-    sorted_benef_list = sort_the_infos(calculated_list, key=column_to_sort, reverse=True) 
+    results = make_baskets(benef_list, MAX_AMOUNT) 
 
-    optimized_basket = make_baskets(sorted_benef_list, 500) 
-    print('\n', optimized_basket) 
+    display_results(results, FILENME, start_time, time) 
 
 
-def read_the_infos(file): 
+# @profile
+def read_the_infos(FILENME): 
     """ Reads the infos file to get the actions, their prices 
             and their benefits. 
             Suppresses the first line from the result. 
@@ -27,7 +32,7 @@ def read_the_infos(file):
             list: the formated actions from the file. 
     """ 
     registered_list = [] 
-    with open(f'data/{file}.csv', 'r') as file: 
+    with open(f'../enonce_et_ressources/{FILENME}.csv', 'r') as file: 
         fileReader = csv.reader(file, delimiter=',') 
         for row in fileReader: 
             registered_list.append(row) 
@@ -35,56 +40,33 @@ def read_the_infos(file):
     return registered_list 
 
 
-def formate_the_infos(list_to_formate): 
-    """ From the given list, adds zeros up to width of 3 to the "bénéfice" column. 
-        Returns:
-            list: the formated actions. 
-    """ 
-    formated_list = [] 
-    for new_row in list_to_formate: 
-        new_cost = new_row.pop(2) 
-        new_row.insert(2, new_cost.zfill(5)) 
-        formated_list.append(new_row) 
-    return formated_list 
-
-
-def calculate_the_benefit(list_to_calculate): 
+# @profile
+def calculate_the_benefit(registered_list): 
     """ Calculates the price * the benefit % for each action. 
         Args:
-            list_to_calculate (list): the list to calculate. 
+            registered_list (list): the list of shares to calculate. 
         Returns:
-            list: the list with the calculated benefit. 
+            list: the list with the calculated benefits. 
     """ 
-    calculated_list = [] 
+    benef_list = [] 
     calculated_benefit = 0 
 
-    for line in list_to_calculate: 
-        calculated_benefit = (float(line[1]) * float(line[2][:-1]) / 100) 
+    for line in registered_list: 
+        calculated_benefit = (float(line[1]) * float(line[2]) / 100)  # [:-1] 
         str(calculated_benefit).zfill(6) 
         line.append(round(float(calculated_benefit), 2)) 
-        calculated_list.append(line) 
+        benef_list.append(line) 
 
-    return calculated_list 
+    return benef_list 
 
 
+# @profile
 def column_to_sort(share): 
     return share[3] 
 
 
-def sort_the_infos(list_to_sort, key, reverse): 
-    """ Sort the infos from a list on the benefit amount column. 
-        params: 
-            list_to_sort (list): the list to sort. 
-            column (str): the column to sort the list on. 
-            reverse (bool): ascendant or descendant. 
-        return :
-            sorted_benef_list: the new sorted list. 
-    """ 
-    sorted_benef_list = sorted(list_to_sort, key=column_to_sort, reverse=True) 
-    return sorted_benef_list 
-
-
-def make_baskets(sorted_benef_list, max_purchase):
+# @profile
+def make_baskets(benef_list, MAX_AMOUNT):
     """ Read the file containing the share's list, 
         set all the pourcentages up to 2 digits, 
         calculate the profit for each share, 
@@ -93,48 +75,52 @@ def make_baskets(sorted_benef_list, max_purchase):
             list_to_formate (list): list of shares from file. 
             max_amount (int): the amount constraint of buying shares. 
     """ 
-    total_purchase = round(float(0), 2) 
-    best_benefit = round(float(0), 2) 
-    best_basket = () 
-
     purchase = round(float(0), 2) 
     basket = [] 
-    basket_benefit = round(float(0), 2) 
+    benefit = round(float(0), 2) 
 
-    for s in sorted_benef_list: 
-        if float(s[1]) <= float(0): 
+    sorted_list = sorted(benef_list, key=column_to_sort, reverse=True) 
+
+    for s in sorted_list: 
+        if (float(s[1]) <= float(0)) | (float(s[3]) < 1): 
             continue 
-        purchase += round(float(s[1]), 2) 
-        if purchase > max_purchase: 
-            purchase -= round(float(s[1]), 2) 
-        else: 
-            # print(f'\npurchase OP126 : {round(purchase, 2)}') 
+        elif float(s[1]) <= (float(MAX_AMOUNT) - float(purchase)): 
+            purchase += round(float(s[1]), 2) 
             basket.append(s) 
-            basket_benefit += round(float(s[3]), 2) 
+            benefit += round(float(s[3]), 2) 
 
-    if purchase > total_purchase: 
-        total_purchase = round(purchase, 2) 
+    results = { 
+        'basket': basket, 
+        'purchase': purchase, 
+        'benefit': round(float(benefit), 2), 
+        'ratio': (benefit / purchase) * 100, 
+    } 
 
-    if basket_benefit > best_benefit: 
-        best_benefit = basket_benefit 
-        best_basket = basket 
-        # print(f'\nbest_benefit OP135 : {round(float(best_benefit), 2)}') 
+    return results 
 
-    with open(f'data/{sys.argv[1]}-export.csv', 'a', encoding='utf-8') as csvfile: 
+
+# @profile
+def display_results(results, FILENME, start_time, time): 
+    # print(start_time) 
+    # print(time.time()) 
+
+    with open(f'data/{FILENME}-export.csv', 'a', encoding='utf-8') as csvfile: 
+        # file deepcode ignore unquoted~csv~writer: local project 
         csv_writer = csv.writer(csvfile) 
         # adding header 
-        file_name = [f'{sys.argv[1]}-export.csv'] 
+        file_name = [f'({sys.argv[1]}-export.csv)'] 
         headerList = ['name', 'price', 'profit'] 
-        cost = [f'coût total : {round(total_purchase, 2)}'] 
-        profit = [f'profit total : {round(best_benefit, 2)}'] 
+        cost = [f'coût total : {round(results["purchase"], 2)}'] 
+        profit = [f'profit total : {round(results["benefit"], 2)}'] 
+        ratio = [f'ratio : {round(results["ratio"], 5)}'] 
+        time_spent = [f'Time : {round(((time.time() - start_time)*1000), 5)} miliseconds'] 
         csv_writer.writerow(file_name) 
         csv_writer.writerow(headerList) 
-        csv_writer.writerows(basket) 
+        csv_writer.writerows(results['basket']) 
         csv_writer.writerow(cost) 
         csv_writer.writerow(profit) 
-
-
-    return (best_basket, total_purchase, round(best_benefit, 2)) 
+        csv_writer.writerow(ratio) 
+        csv_writer.writerow(time_spent) 
 
 
 if __name__ == '__main__': 
